@@ -27,6 +27,15 @@ ORDER_TYPE_NAMES = {
 
 MARKET_TYPES = {mt5.ORDER_TYPE_BUY, mt5.ORDER_TYPE_SELL}
 
+BUY_TYPES  = {mt5.ORDER_TYPE_BUY, mt5.ORDER_TYPE_BUY_LIMIT,
+              mt5.ORDER_TYPE_BUY_STOP, mt5.ORDER_TYPE_BUY_STOP_LIMIT}
+SELL_TYPES = {mt5.ORDER_TYPE_SELL, mt5.ORDER_TYPE_SELL_LIMIT,
+              mt5.ORDER_TYPE_SELL_STOP, mt5.ORDER_TYPE_SELL_STOP_LIMIT}
+
+
+def direction(order_type: int) -> str:
+    return "BUYNOW" if order_type in BUY_TYPES else "SELLNOW"
+
 
 def fmt_price(symbol: str, price: float) -> str:
     info = mt5.symbol_info(symbol)
@@ -39,28 +48,18 @@ def fmt_price(symbol: str, price: float) -> str:
 # ─────────────────────────────────────────────
 
 def ch1_open(order, label="NEW") -> str:
-    is_market = order.type in MARKET_TYPES
-    symbol    = order.symbol
-    entry     = fmt_price(symbol, order.price_open)
-    sl        = fmt_price(symbol, order.sl) if order.sl != 0.0 else None
-    tp        = fmt_price(symbol, order.tp) if order.tp != 0.0 else None
+    symbol = order.symbol
+    entry  = fmt_price(symbol, order.price_open)
+    sl     = fmt_price(symbol, order.sl) if order.sl != 0.0 else None
+    tp     = fmt_price(symbol, order.tp) if order.tp != 0.0 else None
+    action = direction(order.type)
 
-    prefix = ""
-    if label.startswith("FILLED"):
-        # Ambil tipe asli dari label, misal "FILLED BUY LIMIT" → "BUY LIMIT"
-        orig_type = label.replace("FILLED ", "")
-        action    = orig_type
-        prefix    = "ORDER KENA ✅\n"
-    elif label == "UPDATE SL/TP":
-        action = "BUYNOW" if order.type == mt5.ORDER_TYPE_BUY else "SELLNOW" if is_market else ORDER_TYPE_NAMES.get(order.type, "ORDER")
+    if label == "UPDATE SL/TP":
         prefix = "UPDATE ‼️\n"
     elif label == "UPDATE PENDING":
-        action = ORDER_TYPE_NAMES.get(order.type, "ORDER")
         prefix = "ORDER DIUPDATE ✏️\n"
-    elif is_market:
-        action = "BUYNOW" if order.type == mt5.ORDER_TYPE_BUY else "SELLNOW"
     else:
-        action = ORDER_TYPE_NAMES.get(order.type, "ORDER")
+        prefix = ""
 
     lines = [
         f"{prefix}🏁 {symbol} {action}",
@@ -76,15 +75,7 @@ def ch1_open(order, label="NEW") -> str:
 
 
 def ch1_close(deal, label: str) -> str:
-    symbol = deal.symbol
-    profit = deal.profit
-
-    if label == "HIT TP":
-        return f"YOOOOOO TAKE PROFIT ✅\n{symbol}  {profit:+.2f}"
-    elif label == "HIT SL":
-        return f"SL GUYS, NT ❌\n{symbol}  {profit:+.2f}"
-    else:
-        return f"CLOSED MANUAL ⚪\n{symbol}  {profit:+.2f}"
+    return ""
 
 
 def ch1_cancel(hist_order) -> str:
@@ -101,27 +92,17 @@ def ch1_cancel(hist_order) -> str:
 # ─────────────────────────────────────────────
 
 def ch2_open(order, label="NEW") -> str:
-    is_market = order.type in MARKET_TYPES
-    symbol    = order.symbol
-    entry     = fmt_price(symbol, order.price_open)
-    sl        = fmt_price(symbol, order.sl) if order.sl != 0.0 else None
-    tp        = fmt_price(symbol, order.tp) if order.tp != 0.0 else None
+    symbol = order.symbol
+    entry  = fmt_price(symbol, order.price_open)
+    sl     = fmt_price(symbol, order.sl) if order.sl != 0.0 else None
+    tp     = fmt_price(symbol, order.tp) if order.tp != 0.0 else None
+    action = direction(order.type)
 
-    if label.startswith("FILLED"):
-        orig_type = label.replace("FILLED ", "")
-        action    = orig_type
-        prefix    = "ORDER FILLED\n"
-    elif label == "UPDATE SL/TP":
-        action = "BUYNOW" if order.type == mt5.ORDER_TYPE_BUY else "SELLNOW" if is_market else ORDER_TYPE_NAMES.get(order.type, "ORDER")
+    if label == "UPDATE SL/TP":
         prefix = "UPDATE ORDER\n"
     elif label == "UPDATE PENDING":
-        action = ORDER_TYPE_NAMES.get(order.type, "ORDER")
         prefix = "UPDATE ORDER\n"
-    elif is_market:
-        action = "BUYNOW" if order.type == mt5.ORDER_TYPE_BUY else "SELLNOW"
-        prefix = ""
     else:
-        action = ORDER_TYPE_NAMES.get(order.type, "ORDER")
         prefix = ""
 
     lines = [
@@ -138,15 +119,7 @@ def ch2_open(order, label="NEW") -> str:
 
 
 def ch2_close(deal, label: str) -> str:
-    symbol = deal.symbol
-    profit = deal.profit
-
-    if label == "HIT TP":
-        return f"TEPEEEE ✅\n{symbol}  {profit:+.2f}"
-    elif label == "HIT SL":
-        return f"SORRY SL ❌\n{symbol}  {profit:+.2f}"
-    else:
-        return f"CLOSED\n{symbol}  {profit:+.2f}"
+    return ""
 
 
 def ch2_cancel(hist_order) -> str:
