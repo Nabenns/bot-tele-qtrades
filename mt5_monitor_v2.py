@@ -55,22 +55,34 @@ def ch1_open(order, label="NEW") -> str:
     action = direction(order.type)
 
     if label == "UPDATE SL/TP":
-        prefix = "UPDATE ‼️\n"
+        lines = [
+            f"SL : {sl if sl is not None else '-'}",
+            f"TP : {tp if tp is not None else '-'}",
+            "",
+            "JAGA RISK KALIAN GUYS ‼️",
+        ]
     elif label == "UPDATE PENDING":
-        prefix = "ORDER DIUPDATE ✏️\n"
+        lines = [
+            f"ORDER DIUPDATE ✏️\n🏁 {symbol} {action}",
+            "",
+            f"HARGA : {entry}",
+            "",
+            f"SL : {sl if sl is not None else '-'}",
+            f"TP : {tp if tp is not None else '-'}",
+            "",
+            "JAGA RISK KALIAN GUYS ‼️",
+        ]
     else:
-        prefix = ""
-
-    lines = [
-        f"{prefix}🏁 {symbol} {action}",
-        "",
-        f"HARGA : {entry}",
-        "",
-        f"SL : {sl if sl is not None else '-'}",
-        f"TP : {tp if tp is not None else '-'}",
-        "",
-        "JAGA RISK KALIAN GUYS ‼️",
-    ]
+        lines = [
+            f"🏁 {symbol} {action}",
+            "",
+            f"HARGA : {entry}",
+            "",
+            f"SL : {sl if sl is not None else '-'}",
+            f"TP : {tp if tp is not None else '-'}",
+            "",
+            "JAGA RISK KALIAN GUYS ‼️",
+        ]
     return "\n".join(lines)
 
 
@@ -105,22 +117,34 @@ def ch2_open(order, label="NEW") -> str:
     action = direction(order.type)
 
     if label == "UPDATE SL/TP":
-        prefix = "UPDATE ORDER\n"
+        lines = [
+            f"STOPLOSS : {sl if sl is not None else '-'}",
+            f"TAKEPROFIT : {tp if tp is not None else '-'}",
+            "",
+            "DISCLAIMER : TRADING MEMILIK RESIKO TINGGI!",
+        ]
     elif label == "UPDATE PENDING":
-        prefix = "UPDATE ORDER\n"
+        lines = [
+            f"UPDATE ORDER\n{symbol} {action}",
+            "",
+            f"PRICE : {entry}",
+            "",
+            f"STOPLOSS : {sl if sl is not None else '-'}",
+            f"TAKEPROFIT : {tp if tp is not None else '-'}",
+            "",
+            "DISCLAIMER : TRADING MEMILIK RESIKO TINGGI!",
+        ]
     else:
-        prefix = ""
-
-    lines = [
-        f"{prefix}{symbol} {action}",
-        "",
-        f"PRICE : {entry}",
-        "",
-        f"STOPLOSS : {sl if sl is not None else '-'}",
-        f"TAKEPROFIT : {tp if tp is not None else '-'}",
-        "",
-        "DISCLAIMER : TRADING MEMILIK RESIKO TINGGI!",
-    ]
+        lines = [
+            f"{symbol} {action}",
+            "",
+            f"PRICE : {entry}",
+            "",
+            f"STOPLOSS : {sl if sl is not None else '-'}",
+            f"TAKEPROFIT : {tp if tp is not None else '-'}",
+            "",
+            "DISCLAIMER : TRADING MEMILIK RESIKO TINGGI!",
+        ]
     return "\n".join(lines)
 
 
