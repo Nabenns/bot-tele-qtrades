@@ -309,9 +309,7 @@ def main():
     print("[MT5 Monitor v2] Starting...")
 
     mt5_paths = [
-        r"C:\Program Files\MetaTrader 5\terminal64.exe",
-        r"C:\Program Files (x86)\MetaTrader 5\terminal64.exe",
-        r"C:\MT5\terminal64.exe",
+        r"C:\Users\admin\Desktop\MetaTrader 5\terminal64.exe",
     ]
 
     initialized = False
