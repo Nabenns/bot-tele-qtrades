@@ -93,7 +93,7 @@ def ch1_close(deal, label: str) -> str:
     elif label == "HIT SL":
         return f"SL GUYS, NT ❌\n{symbol}"
     else:
-        return f"CLOSED MANUAL ⚪\n{symbol}"
+        return f"CLOSE PROFIT ✅\n{symbol}"
 
 
 def ch1_cancel(hist_order) -> str:
@@ -155,7 +155,7 @@ def ch2_close(deal, label: str) -> str:
     elif label == "HIT SL":
         return f"SORRY SL ❌\n{symbol}"
     else:
-        return f"CLOSED\n{symbol}"
+        return f"CLOSE PROFIT ✅\n{symbol}"
 
 
 def ch2_cancel(hist_order) -> str:
