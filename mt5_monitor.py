@@ -70,7 +70,7 @@ def format_open_message(order, account_info, label="NEW") -> str:
     lines = [
         f"<b>📊 {label} {order_type} — {order.symbol}</b>",
         f"<i>{order_label}</i>",
-        f"Ticket: <code>{order.ticket}</code>",
+
         "",
         f"<b>Equity:</b>  {account_info.equity:.2f}",
         f"<b>Lotsize:</b> {volume}",
@@ -88,7 +88,7 @@ def format_open_message(order, account_info, label="NEW") -> str:
 def format_close_message(deal, account_info, label: str, emoji: str) -> str:
     lines = [
         f"<b>{emoji} {label} — {deal.symbol}</b>",
-        f"Ticket: <code>{deal.position_id}</code>",
+
         "",
         f"<b>Equity:</b>   {account_info.equity:.2f}",
         f"<b>Balance:</b>  {account_info.balance:.2f}",
@@ -106,7 +106,7 @@ def format_cancel_message(hist_order, account_info) -> str:
     order_type = ORDER_TYPE_NAMES.get(hist_order.type, f"TYPE_{hist_order.type}")
     lines = [
         f"<b>🚫 CANCELLED {order_type} — {hist_order.symbol}</b>",
-        f"Ticket: <code>{hist_order.ticket}</code>",
+
         "",
         f"<b>Equity:</b>  {account_info.equity:.2f}",
         f"<b>Lotsize:</b> {hist_order.volume_initial}",
