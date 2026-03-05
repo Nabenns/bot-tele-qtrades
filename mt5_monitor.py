@@ -23,15 +23,23 @@ ORDER_TYPE_NAMES = {
 MARKET_TYPES = {mt5.ORDER_TYPE_BUY, mt5.ORDER_TYPE_SELL}
 
 
-def send_telegram(message: str):
+ticket_msg_ids = {}
+
+
+def send_telegram(message: str, reply_to: int = None) -> int:
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "HTML"}
+    if reply_to:
+        payload["reply_to_message_id"] = reply_to
     try:
         r = requests.post(url, data=payload, timeout=10)
-        if not r.ok:
+        if r.ok:
+            return r.json().get("result", {}).get("message_id")
+        else:
             print(f"[TELEGRAM ERROR] {r.status_code}: {r.text}")
     except Exception as e:
         print(f"[TELEGRAM EXCEPTION] {e}")
+    return None
 
 
 def calc_risk_percent(account_info, order) -> str:
@@ -222,7 +230,9 @@ def main():
                 if orders:
                     pending_type_cache[ticket] = orders[0].type
                     print(f"[NEW PENDING] Ticket {ticket}")
-                    send_telegram(format_open_message(orders[0], acct, label="NEW"))
+                    mid = send_telegram(format_open_message(orders[0], acct, label="NEW"))
+                    if mid:
+                        ticket_msg_ids[ticket] = mid
 
             # --- Posisi baru (market order / pending yang ke-fill) ---
             for ticket in cur_positions - known_positions:
@@ -233,23 +243,29 @@ def main():
                 if ticket in pending_type_cache:
                     orig_type = ORDER_TYPE_NAMES.get(pending_type_cache[ticket], "LIMIT")
                     print(f"[FILLED] Ticket {ticket} ({orig_type})")
-                    send_telegram(format_open_message(pos, acct, label=f"FILLED {orig_type}"))
+                    reply_to = ticket_msg_ids.get(ticket)
+                    mid = send_telegram(format_open_message(pos, acct, label=f"FILLED {orig_type}"), reply_to=reply_to)
+                    if mid:
+                        ticket_msg_ids[ticket] = mid
                     del pending_type_cache[ticket]
                 else:
                     print(f"[NEW POSITION] Ticket {ticket}")
-                    send_telegram(format_open_message(pos, acct, label="NEW"))
+                    mid = send_telegram(format_open_message(pos, acct, label="NEW"))
+                    if mid:
+                        ticket_msg_ids[ticket] = mid
 
             # --- Pending order hilang (cancelled atau filled) ---
             for ticket in known_pending - cur_pending:
                 if ticket in cur_positions:
-                    pass  # sudah jadi posisi, sudah dihandle di atas
+                    pass
                 else:
                     hist = mt5.history_orders_get(ticket=ticket)
                     if hist:
                         h = hist[0]
                         if h.state == mt5.ORDER_STATE_CANCELED:
                             print(f"[CANCELLED] Ticket {ticket}")
-                            send_telegram(format_cancel_message(h, acct))
+                            reply_to = ticket_msg_ids.pop(ticket, None)
+                            send_telegram(format_cancel_message(h, acct), reply_to=reply_to)
 
             # --- Posisi hilang (closed: SL / TP / manual) ---
             for ticket in known_positions - cur_positions:
@@ -265,7 +281,8 @@ def main():
                     label, emoji = "CLOSED MANUAL", "⚪"
 
                 print(f"[{label}] Ticket {ticket} | Profit: {deal.profit:+.2f}")
-                send_telegram(format_close_message(deal, acct, label, emoji))
+                reply_to = ticket_msg_ids.pop(ticket, None)
+                send_telegram(format_close_message(deal, acct, label, emoji), reply_to=reply_to)
 
             # --- Perubahan SL/TP pada posisi existing ---
             cur_sltp = snapshot_positions()
@@ -282,7 +299,8 @@ def main():
                         if new_tp != old_tp:
                             what.append(f"TP: {old_tp} → {new_tp}")
                         print(f"[SL/TP UPDATE] Ticket {ticket} — {', '.join(what)}")
-                        send_telegram(format_open_message(positions[0], acct, label="UPDATE SL/TP"))
+                        reply_to = ticket_msg_ids.get(ticket)
+                        send_telegram(format_open_message(positions[0], acct, label="UPDATE SL/TP"), reply_to=reply_to)
 
             # --- Perubahan price/SL/TP pada pending order existing ---
             cur_pending_snap = snapshot_pending()
@@ -301,7 +319,8 @@ def main():
                         if new_tp != old_tp:
                             what.append(f"TP: {old_tp} → {new_tp}")
                         print(f"[PENDING UPDATE] Ticket {ticket} — {', '.join(what)}")
-                        send_telegram(format_open_message(orders[0], acct, label="UPDATE PENDING"))
+                        reply_to = ticket_msg_ids.get(ticket)
+                        send_telegram(format_open_message(orders[0], acct, label="UPDATE PENDING"), reply_to=reply_to)
 
             known_pending    = cur_pending
             known_positions  = cur_positions
