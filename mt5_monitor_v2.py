@@ -75,7 +75,13 @@ def ch1_open(order, label="NEW") -> str:
 
 
 def ch1_close(deal, label: str) -> str:
-    return ""
+    symbol = deal.symbol
+    if label == "HIT TP":
+        return f"YOOOOOO TAKE PROFIT ✅\n{symbol}"
+    elif label == "HIT SL":
+        return f"SL GUYS, NT ❌\n{symbol}"
+    else:
+        return f"CLOSED MANUAL ⚪\n{symbol}"
 
 
 def ch1_cancel(hist_order) -> str:
@@ -119,7 +125,13 @@ def ch2_open(order, label="NEW") -> str:
 
 
 def ch2_close(deal, label: str) -> str:
-    return ""
+    symbol = deal.symbol
+    if label == "HIT TP":
+        return f"TEPEEEE ✅\n{symbol}"
+    elif label == "HIT SL":
+        return f"SORRY SL ❌\n{symbol}"
+    else:
+        return f"CLOSED\n{symbol}"
 
 
 def ch2_cancel(hist_order) -> str:
