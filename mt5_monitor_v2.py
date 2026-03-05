@@ -187,38 +187,67 @@ FORMATTERS = [
 #  Telegram
 # ─────────────────────────────────────────────
 
-def send_telegram(chat_id: str, message: str):
+def send_telegram(chat_id: str, message: str, reply_to: int = None) -> int:
     if not message.strip():
-        return
+        return None
     url     = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {"chat_id": chat_id, "text": message, "parse_mode": "HTML"}
+    if reply_to:
+        payload["reply_to_message_id"] = reply_to
     try:
         r = requests.post(url, data=payload, timeout=10)
-        if not r.ok:
+        if r.ok:
+            return r.json().get("result", {}).get("message_id")
+        else:
             print(f"[TELEGRAM ERROR] {chat_id}: {r.status_code}: {r.text}")
     except Exception as e:
         print(f"[TELEGRAM EXCEPTION] {e}")
+    return None
+
+
+ticket_msg_ids = {}
 
 
 def broadcast_open(order, label="NEW"):
+    ticket  = order.ticket
+    is_new  = label == "NEW"
+    msg_ids = []
+
     for i, chat_id in enumerate(CHANNELS):
-        fmt = FORMATTERS[i]
-        msg = fmt["open"](order, label)
-        send_telegram(chat_id, msg)
+        fmt      = FORMATTERS[i]
+        msg      = fmt["open"](order, label)
+        reply_to = None
+        if not is_new and ticket in ticket_msg_ids and i < len(ticket_msg_ids[ticket]):
+            reply_to = ticket_msg_ids[ticket][i]
+        msg_id = send_telegram(chat_id, msg, reply_to=reply_to)
+        msg_ids.append(msg_id)
+
+    if is_new:
+        ticket_msg_ids[ticket] = msg_ids
 
 
 def broadcast_close(deal, label: str):
+    ticket = deal.position_id
     for i, chat_id in enumerate(CHANNELS):
-        fmt = FORMATTERS[i]
-        msg = fmt["close"](deal, label)
-        send_telegram(chat_id, msg)
+        fmt      = FORMATTERS[i]
+        msg      = fmt["close"](deal, label)
+        reply_to = None
+        if ticket in ticket_msg_ids and i < len(ticket_msg_ids[ticket]):
+            reply_to = ticket_msg_ids[ticket][i]
+        send_telegram(chat_id, msg, reply_to=reply_to)
+    ticket_msg_ids.pop(ticket, None)
 
 
 def broadcast_cancel(hist_order):
+    ticket = hist_order.ticket
     for i, chat_id in enumerate(CHANNELS):
-        fmt = FORMATTERS[i]
-        msg = fmt["cancel"](hist_order)
-        send_telegram(chat_id, msg)
+        fmt      = FORMATTERS[i]
+        msg      = fmt["cancel"](hist_order)
+        reply_to = None
+        if ticket in ticket_msg_ids and i < len(ticket_msg_ids[ticket]):
+            reply_to = ticket_msg_ids[ticket][i]
+        send_telegram(chat_id, msg, reply_to=reply_to)
+    ticket_msg_ids.pop(ticket, None)
 
 
 # ─────────────────────────────────────────────
