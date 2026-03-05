@@ -170,27 +170,9 @@ def get_close_deal(position_ticket: int):
 def main():
     print("[MT5 Monitor] Starting...")
 
-    mt5_paths = [
-        r"C:\Program Files\MetaTrader 5\terminal64.exe",
-    ]
-
-    initialized = False
-    for path in mt5_paths:
-        if os.path.exists(path):
-            print(f"[MT5] Trying: {path}")
-            if mt5.initialize(path=path):
-                initialized = True
-                break
-            else:
-                print(f"[MT5] Failed with path: {path} — {mt5.last_error()}")
-
-    if not initialized:
-        if mt5.initialize():
-            initialized = True
-
-    if not initialized:
+    if not mt5.initialize():
         print(f"[ERROR] MT5 initialize failed: {mt5.last_error()}")
-        print("[INFO] Pastikan MetaTrader 5 sudah dibuka dan login di sesi RDP ini.")
+        print("[INFO] Pastikan MetaTrader 5 sudah dibuka dan login.")
         return
 
     print(f"[MT5] Connected. Terminal: {mt5.terminal_info().name}")
