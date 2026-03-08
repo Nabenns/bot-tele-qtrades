@@ -52,7 +52,7 @@ def ch1_open(order, label="NEW") -> str:
     entry  = fmt_price(symbol, order.price_open)
     sl     = fmt_price(symbol, order.sl) if order.sl != 0.0 else None
     tp     = fmt_price(symbol, order.tp) if order.tp != 0.0 else None
-    action = direction(order.type)
+    action = "BUY NOW" if order.type in BUY_TYPES else "SELL NOW"
 
     if label == "UPDATE SL/TP":
         lines = [
@@ -77,11 +77,6 @@ def ch1_open(order, label="NEW") -> str:
             f"🏁 {symbol} {action}",
             "",
             f"HARGA : {entry}",
-            "",
-            f"SL : {sl if sl is not None else '-'}",
-            f"TP : {tp if tp is not None else '-'}",
-            "",
-            "JAGA RISK KALIAN GUYS ‼️",
         ]
     return "\n".join(lines)
 
@@ -91,7 +86,7 @@ def ch1_close(deal, label: str) -> str:
     if label == "HIT TP":
         return f"YOOOOOO TAKE PROFIT ✅\n{symbol}"
     elif label == "HIT SL":
-        return f"SL GUYS, NT ❌\n{symbol}"
+        return f"SL GUYS, SORRY YA NT ❌\n{symbol}"
     else:
         return f"CLOSE PROFIT ✅\n{symbol}"
 
