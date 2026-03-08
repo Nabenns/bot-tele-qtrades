@@ -87,13 +87,12 @@ def ch1_open(order, label="NEW") -> str:
 
 
 def ch1_close(deal, label: str) -> str:
-    symbol = clean_symbol(deal.symbol)
     if label == "HIT TP":
-        return f"YOOOOOO TAKE PROFIT ✅\n{symbol}"
+        return "YOOOOOO TAKE PROFIT ✅"
     elif label == "HIT SL":
-        return f"SL GUYS, SORRY YA NT ❌\n{symbol}"
+        return "SL GUYS, SORRY YA NT ❌"
     else:
-        return f"CLOSE PROFIT ✅\n{symbol}"
+        return "CLOSE PROFIT ✅"
 
 
 def ch1_cancel(hist_order) -> str:
@@ -148,13 +147,12 @@ def ch2_open(order, label="NEW") -> str:
 
 
 def ch2_close(deal, label: str) -> str:
-    symbol = clean_symbol(deal.symbol)
     if label == "HIT TP":
-        return f"TEPEEEE GUYS ✅\n{symbol}"
+        return "TEPEEEE GUYS ✅"
     elif label == "HIT SL":
-        return f"SORRY SL GUYS ❌\n{symbol}"
+        return "SORRY SL GUYS ❌"
     else:
-        return f"CLOSE PROFIT ✅\n{symbol}"
+        return "CLOSE PROFIT ✅"
 
 
 def ch2_cancel(hist_order) -> str:
@@ -213,25 +211,49 @@ def send_telegram(chat_id: str, message: str, reply_to: int = None) -> int:
     return None
 
 
+def edit_telegram(chat_id: str, message_id: int, message: str):
+    if not message.strip():
+        return
+    url     = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/editMessageText"
+    payload = {"chat_id": chat_id, "message_id": message_id, "text": message, "parse_mode": "HTML"}
+    try:
+        r = requests.post(url, data=payload, timeout=10)
+        if not r.ok:
+            print(f"[TELEGRAM EDIT ERROR] {chat_id}: {r.status_code}: {r.text}")
+    except Exception as e:
+        print(f"[TELEGRAM EDIT EXCEPTION] {e}")
+
+
 ticket_msg_ids = {}
+sltp_msg_ids   = {}  # {ticket: [msg_id_ch0, msg_id_ch1, ...]}
 
 
-def broadcast_open(order, label="NEW"):
-    ticket  = order.ticket
-    is_new  = label == "NEW"
-    msg_ids = []
+def broadcast_open(order, label="NEW", is_first_sltp=False):
+    ticket     = order.ticket
+    is_new     = label == "NEW"
+    is_sltp    = label == "UPDATE SL/TP"
+    is_adjust  = is_sltp and ticket in sltp_msg_ids
+    msg_ids    = []
 
     for i, chat_id in enumerate(CHANNELS):
-        fmt      = FORMATTERS[i]
-        msg      = fmt["open"](order, label)
-        reply_to = None
-        if not is_new and ticket in ticket_msg_ids and i < len(ticket_msg_ids[ticket]):
-            reply_to = ticket_msg_ids[ticket][i]
-        msg_id = send_telegram(chat_id, msg, reply_to=reply_to)
-        msg_ids.append(msg_id)
+        fmt = FORMATTERS[i]
+        msg = fmt["open"](order, label)
+
+        if is_sltp and is_adjust and i < len(sltp_msg_ids[ticket]):
+            # Edit pesan SL/TP sebelumnya
+            edit_telegram(chat_id, sltp_msg_ids[ticket][i], msg)
+            msg_ids.append(sltp_msg_ids[ticket][i])
+        else:
+            reply_to = None
+            if not is_new and ticket in ticket_msg_ids and i < len(ticket_msg_ids[ticket]):
+                reply_to = ticket_msg_ids[ticket][i]
+            mid = send_telegram(chat_id, msg, reply_to=reply_to)
+            msg_ids.append(mid)
 
     if is_new:
         ticket_msg_ids[ticket] = msg_ids
+    elif is_sltp:
+        sltp_msg_ids[ticket] = msg_ids
 
 
 def broadcast_close(deal, label: str):
@@ -244,6 +266,7 @@ def broadcast_close(deal, label: str):
             reply_to = ticket_msg_ids[ticket][i]
         send_telegram(chat_id, msg, reply_to=reply_to)
     ticket_msg_ids.pop(ticket, None)
+    sltp_msg_ids.pop(ticket, None)
 
 
 def broadcast_cancel(hist_order):
@@ -256,6 +279,7 @@ def broadcast_cancel(hist_order):
             reply_to = ticket_msg_ids[ticket][i]
         send_telegram(chat_id, msg, reply_to=reply_to)
     ticket_msg_ids.pop(ticket, None)
+    sltp_msg_ids.pop(ticket, None)
 
 
 # ─────────────────────────────────────────────
