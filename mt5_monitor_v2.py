@@ -68,7 +68,7 @@ def ch1_open(order, label="NEW") -> str:
         ]
     elif label == "UPDATE PENDING":
         lines = [
-            f"ORDER DIUPDATE ✏️\n🏁 {symbol} {action}",
+            f"ORDER DIUPDATE ✏️\n📊 {symbol} {action}",
             "",
             f"HARGA : {entry}",
             "",
@@ -79,7 +79,7 @@ def ch1_open(order, label="NEW") -> str:
         ]
     else:
         lines = [
-            f"🏁 {symbol} {action}",
+            f"📊 {symbol} {action}",
             "",
             f"HARGA : {entry}",
         ]
@@ -114,14 +114,16 @@ def ch2_open(order, label="NEW") -> str:
     entry  = fmt_price(order.symbol, order.price_open)
     sl     = fmt_price(order.symbol, order.sl) if order.sl != 0.0 else None
     tp     = fmt_price(order.symbol, order.tp) if order.tp != 0.0 else None
-    action = direction(order.type)
+    action = "BUY NOW" if order.type in BUY_TYPES else "SELL NOW"
+
+    disclaimer = "⚠️ TRADING MEMILIK RESIKO TINGGI ⚠️"
 
     if label == "UPDATE SL/TP":
         lines = [
             f"STOPLOSS : {sl if sl is not None else '-'}",
             f"TAKEPROFIT : {tp if tp is not None else '-'}",
             "",
-            "DISCLAIMER : TRADING MEMILIK RESIKO TINGGI!",
+            disclaimer,
         ]
     elif label == "UPDATE PENDING":
         lines = [
@@ -132,7 +134,7 @@ def ch2_open(order, label="NEW") -> str:
             f"STOPLOSS : {sl if sl is not None else '-'}",
             f"TAKEPROFIT : {tp if tp is not None else '-'}",
             "",
-            "DISCLAIMER : TRADING MEMILIK RESIKO TINGGI!",
+            disclaimer,
         ]
     else:
         lines = [
@@ -140,10 +142,7 @@ def ch2_open(order, label="NEW") -> str:
             "",
             f"PRICE : {entry}",
             "",
-            f"STOPLOSS : {sl if sl is not None else '-'}",
-            f"TAKEPROFIT : {tp if tp is not None else '-'}",
-            "",
-            "DISCLAIMER : TRADING MEMILIK RESIKO TINGGI!",
+            disclaimer,
         ]
     return "\n".join(lines)
 
@@ -151,9 +150,9 @@ def ch2_open(order, label="NEW") -> str:
 def ch2_close(deal, label: str) -> str:
     symbol = clean_symbol(deal.symbol)
     if label == "HIT TP":
-        return f"TEPEEEE ✅\n{symbol}"
+        return f"TEPEEEE GUYS ✅\n{symbol}"
     elif label == "HIT SL":
-        return f"SORRY SL ❌\n{symbol}"
+        return f"SORRY SL GUYS ❌\n{symbol}"
     else:
         return f"CLOSE PROFIT ✅\n{symbol}"
 
