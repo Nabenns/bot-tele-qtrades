@@ -9,7 +9,7 @@ TELEGRAM_BOT_TOKEN = "8703917049:AAEImdlrAiZgqVB6sCRGoXvjvcirMpxkoHE"
 CHANNELS = [
     "-1001732290104",   # Channel 1
     "-1002220295876",   # Channel 2
-    # "-100XXXXXXXXXX", # Channel 3
+    "-1002113271651",   # Channel 3
 ]
 
 CHECK_INTERVAL = 3
@@ -165,17 +165,59 @@ def ch2_cancel(hist_order) -> str:
 
 
 # ─────────────────────────────────────────────
-#  CHANNEL 3  —  (tambah nanti)
+#  CHANNEL 3
 # ─────────────────────────────────────────────
 
 def ch3_open(order, label="NEW") -> str:
-    return ""  # TODO
+    symbol = clean_symbol(order.symbol)
+    entry  = fmt_price(order.symbol, order.price_open)
+    sl     = fmt_price(order.symbol, order.sl) if order.sl != 0.0 else None
+    tp     = fmt_price(order.symbol, order.tp) if order.tp != 0.0 else None
+    action = "BUY NOW" if order.type in BUY_TYPES else "SELL NOW"
+
+    if label == "UPDATE SL/TP":
+        lines = [
+            f"SL : {sl if sl is not None else '-'}",
+            f"TP : {tp if tp is not None else '-'}",
+            "",
+            "Note : Lebihkan buat spread dan jaga risk guys",
+        ]
+    elif label == "UPDATE PENDING":
+        lines = [
+            f"ORDER DIUPDATE ✏️\n{action} {symbol}",
+            "",
+            f"HARGA {entry}",
+            "",
+            f"SL : {sl if sl is not None else '-'}",
+            f"TP : {tp if tp is not None else '-'}",
+            "",
+            "Note : Lebihkan buat spread dan jaga risk guys",
+        ]
+    else:
+        lines = [
+            f"{action} {symbol}",
+            "",
+            f"HARGA {entry}",
+        ]
+    return "\n".join(lines)
+
 
 def ch3_close(deal, label: str) -> str:
-    return ""  # TODO
+    if label == "HIT TP":
+        return "Alhamdulillah TP guys ✅"
+    elif label == "HIT SL":
+        return "SL nih, Nicetry yakk ❌"
+    else:
+        return "CLOSE PROFIT ✅"
+
 
 def ch3_cancel(hist_order) -> str:
-    return ""  # TODO
+    order_type = ORDER_TYPE_NAMES.get(hist_order.type, "ORDER")
+    return (
+        f"ORDER CANCEL\n"
+        f"{order_type} {clean_symbol(hist_order.symbol)}\n"
+        f"HARGA {fmt_price(hist_order.symbol, hist_order.price_open)}"
+    )
 
 
 # ─────────────────────────────────────────────
