@@ -37,6 +37,11 @@ def direction(order_type: int) -> str:
     return "BUYNOW" if order_type in BUY_TYPES else "SELLNOW"
 
 
+def clean_symbol(symbol: str) -> str:
+    import re
+    return re.sub(r'[a-z.+#\-]+$', '', symbol)
+
+
 def fmt_price(symbol: str, price: float) -> str:
     info = mt5.symbol_info(symbol)
     digits = info.digits if info else 5
@@ -48,10 +53,10 @@ def fmt_price(symbol: str, price: float) -> str:
 # ─────────────────────────────────────────────
 
 def ch1_open(order, label="NEW") -> str:
-    symbol = order.symbol
-    entry  = fmt_price(symbol, order.price_open)
-    sl     = fmt_price(symbol, order.sl) if order.sl != 0.0 else None
-    tp     = fmt_price(symbol, order.tp) if order.tp != 0.0 else None
+    symbol = clean_symbol(order.symbol)
+    entry  = fmt_price(order.symbol, order.price_open)
+    sl     = fmt_price(order.symbol, order.sl) if order.sl != 0.0 else None
+    tp     = fmt_price(order.symbol, order.tp) if order.tp != 0.0 else None
     action = "BUY NOW" if order.type in BUY_TYPES else "SELL NOW"
 
     if label == "UPDATE SL/TP":
@@ -82,7 +87,7 @@ def ch1_open(order, label="NEW") -> str:
 
 
 def ch1_close(deal, label: str) -> str:
-    symbol = deal.symbol
+    symbol = clean_symbol(deal.symbol)
     if label == "HIT TP":
         return f"YOOOOOO TAKE PROFIT ✅\n{symbol}"
     elif label == "HIT SL":
@@ -95,7 +100,7 @@ def ch1_cancel(hist_order) -> str:
     order_type = ORDER_TYPE_NAMES.get(hist_order.type, "ORDER")
     return (
         f"❌ ORDER CANCEL\n"
-        f"{hist_order.symbol} {order_type}\n"
+        f"{clean_symbol(hist_order.symbol)} {order_type}\n"
         f"HARGA : {fmt_price(hist_order.symbol, hist_order.price_open)}"
     )
 
@@ -105,10 +110,10 @@ def ch1_cancel(hist_order) -> str:
 # ─────────────────────────────────────────────
 
 def ch2_open(order, label="NEW") -> str:
-    symbol = order.symbol
-    entry  = fmt_price(symbol, order.price_open)
-    sl     = fmt_price(symbol, order.sl) if order.sl != 0.0 else None
-    tp     = fmt_price(symbol, order.tp) if order.tp != 0.0 else None
+    symbol = clean_symbol(order.symbol)
+    entry  = fmt_price(order.symbol, order.price_open)
+    sl     = fmt_price(order.symbol, order.sl) if order.sl != 0.0 else None
+    tp     = fmt_price(order.symbol, order.tp) if order.tp != 0.0 else None
     action = direction(order.type)
 
     if label == "UPDATE SL/TP":
@@ -144,7 +149,7 @@ def ch2_open(order, label="NEW") -> str:
 
 
 def ch2_close(deal, label: str) -> str:
-    symbol = deal.symbol
+    symbol = clean_symbol(deal.symbol)
     if label == "HIT TP":
         return f"TEPEEEE ✅\n{symbol}"
     elif label == "HIT SL":
@@ -157,7 +162,7 @@ def ch2_cancel(hist_order) -> str:
     order_type = ORDER_TYPE_NAMES.get(hist_order.type, "ORDER")
     return (
         f"ORDER CANCEL\n"
-        f"{hist_order.symbol} {order_type}\n"
+        f"{clean_symbol(hist_order.symbol)} {order_type}\n"
         f"PRICE : {fmt_price(hist_order.symbol, hist_order.price_open)}"
     )
 
