@@ -140,8 +140,6 @@ def ch2_open(order, label="NEW") -> str:
             f"{symbol} {action}",
             "",
             f"PRICE : {entry}",
-            "",
-            disclaimer,
         ]
     return "\n".join(lines)
 
