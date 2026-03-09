@@ -143,7 +143,7 @@ def broadcast_open(order, label="NEW"):
     ticket    = order.ticket
     is_new    = label == "NEW"
     is_sltp   = label == "UPDATE SL/TP"
-    is_adjust = is_sltp and ticket in sltp_msg_ids
+    is_adjust = is_sltp and bool(sltp_msg_ids.get(ticket))
 
     msg = fmt_open(order, label)
 
@@ -156,7 +156,7 @@ def broadcast_open(order, label="NEW"):
         mid = send_discord(msg, reply_to=reply_to)
         if is_new:
             ticket_msg_ids[ticket] = mid
-        elif is_sltp:
+        elif is_sltp and mid:
             sltp_msg_ids[ticket] = mid
 
 
