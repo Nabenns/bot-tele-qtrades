@@ -1,3 +1,4 @@
+import re
 import MetaTrader5 as mt5
 import requests
 import time
@@ -19,7 +20,6 @@ ORDER_TYPE_NAMES = {
     mt5.ORDER_TYPE_SELL_STOP_LIMIT: "SELL STOP LIMIT",
 }
 
-MARKET_TYPES = {mt5.ORDER_TYPE_BUY, mt5.ORDER_TYPE_SELL}
 BUY_TYPES  = {mt5.ORDER_TYPE_BUY, mt5.ORDER_TYPE_BUY_LIMIT,
               mt5.ORDER_TYPE_BUY_STOP, mt5.ORDER_TYPE_BUY_STOP_LIMIT}
 SELL_TYPES = {mt5.ORDER_TYPE_SELL, mt5.ORDER_TYPE_SELL_LIMIT,
@@ -27,7 +27,6 @@ SELL_TYPES = {mt5.ORDER_TYPE_SELL, mt5.ORDER_TYPE_SELL_LIMIT,
 
 
 def clean_symbol(symbol: str) -> str:
-    import re
     return re.sub(r'[a-z.+#\-]+$', '', symbol)
 
 
